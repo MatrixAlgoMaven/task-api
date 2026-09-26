@@ -30,6 +30,10 @@ class TaskCreate(BaseModel):
             raise ValueError("Title cannot be empty")
         return value
 
+class TaskUpdate(BaseModel):
+    title: str | None = None
+    done: bool | None = None
+
 tasks = [
     Task(id=1, title="Learn FastAPI", done=False),
     Task(id=2, title="Build Task API", done=False),
@@ -52,6 +56,41 @@ def get_task(id: int):
     for task in tasks:
         if task.id == id:
             return task
+
+    return JSONResponse(
+        status_code=404,
+        content={"error": f"Task {id} not found"}
+    )
+
+@app.put("/tasks/{id}")
+def update_task(id: int, task_data: TaskUpdate):
+    for task in tasks:
+        if task.id == id:
+
+            if task_data.title is not None:
+                if not task_data.title.strip():
+                    return JSONResponse(
+                        status_code=400,
+                        content={"error": "Title cannot be empty"}
+                    )
+                task.title = task_data.title
+
+            if task_data.done is not None:
+                task.done = task_data.done
+
+            return task
+
+    return JSONResponse(
+        status_code=404,
+        content={"error": f"Task {id} not found"}
+    )
+
+@app.delete("/tasks/{id}", status_code=204)
+def delete_task(id: int):
+    for task in tasks:
+        if task.id == id:
+            tasks.remove(task)
+            return
 
     return JSONResponse(
         status_code=404,
