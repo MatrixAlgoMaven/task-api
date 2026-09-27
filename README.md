@@ -90,13 +90,12 @@ Example response:
 
 ```text
 HTTP/1.1 200 OK
+date: Sun, 27 Sep 2026 00:54:57 GMT
+server: uvicorn
+content-length: 45
 content-type: application/json
 
-{
-  "id": 1,
-  "title": "Learn FastAPI",
-  "done": false
-}
+{"id":1,"title":"Learn FastAPI","done":false}
 ```
 
 ## Swagger UI
