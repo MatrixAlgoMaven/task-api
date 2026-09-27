@@ -40,18 +40,17 @@ tasks = [
     Task(id=3, title="Practice Python", done=True),
 ]
 
-
-@app.get("/")
+@app.get("/", summary="Check that the API is running")
 def root():
     return {"message": "Hello, Task API!"}
 
 
-@app.get("/tasks")
+@app.get("/tasks", summary="List all tasks")
 def get_tasks():
     return tasks
 
 
-@app.get("/tasks/{id}")
+@app.get("/tasks/{id}", summary="Get a task by ID")
 def get_task(id: int):
     for task in tasks:
         if task.id == id:
@@ -62,7 +61,7 @@ def get_task(id: int):
         content={"error": f"Task {id} not found"}
     )
 
-@app.put("/tasks/{id}")
+@app.put("/tasks/{id}", summary="Update a task")
 def update_task(id: int, task_data: TaskUpdate):
     for task in tasks:
         if task.id == id:
@@ -85,7 +84,7 @@ def update_task(id: int, task_data: TaskUpdate):
         content={"error": f"Task {id} not found"}
     )
 
-@app.delete("/tasks/{id}", status_code=204)
+@app.delete("/tasks/{id}", status_code=204, summary="Delete a task")
 def delete_task(id: int):
     for task in tasks:
         if task.id == id:
@@ -97,7 +96,7 @@ def delete_task(id: int):
         content={"error": f"Task {id} not found"}
     )
 
-@app.post("/tasks", status_code=201)
+@app.post("/tasks", status_code=201, summary="Create a new task")
 def create_task(task_data: TaskCreate):
     new_id = max(task.id for task in tasks) + 1
 
