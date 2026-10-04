@@ -95,4 +95,41 @@ def root():
 
 @app.get("/tasks", summary="List all tasks")
 def get_tasks():
-    return {"message": "Database connected. CRUD migration starts next."}
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("SELECT id, title, done FROM tasks")
+    rows = cursor.fetchall()
+
+    connection.close()
+
+    return [
+        Task(id=row[0], title=row[1], done=bool(row[2]))
+        for row in rows
+    ]
+
+@app.get("/tasks/{id}", summary="Get a task by ID")
+def get_task(id: int):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        "SELECT id, title, done FROM tasks WHERE id = ?",
+        (id,)
+    )
+
+    row = cursor.fetchone()
+
+    connection.close()
+
+    if row is None:
+        return JSONResponse(
+            status_code=404,
+            content={"error": f"Task {id} not found"}
+        )
+
+    return Task(
+        id=row[0],
+        title=row[1],
+        done=bool(row[2])
+    )
