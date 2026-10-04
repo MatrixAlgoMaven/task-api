@@ -83,6 +83,13 @@ class TaskUpdate(BaseModel):
     title: str | None = None
     done: bool | None = None
 
+    @field_validator("title")
+    @classmethod
+    def title_must_not_be_empty(cls, value):
+        if value is not None and not value.strip():
+            raise ValueError("Title cannot be empty")
+        return value
+
 
 # -----------------------------
 # API
@@ -154,3 +161,77 @@ def create_task(task_data: TaskCreate):
         title=task_data.title,
         done=False
     )
+
+@app.put("/tasks/{id}", summary="Update a task")
+def update_task(id: int, task_data: TaskUpdate):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        "SELECT id, title, done FROM tasks WHERE id = ?",
+        (id,)
+    )
+
+    row = cursor.fetchone()
+
+    if row is None:
+        connection.close()
+        return JSONResponse(
+            status_code=404,
+            content={"error": f"Task {id} not found"}
+        )
+
+    current_title = row[1]
+    current_done = bool(row[2])
+
+    new_title = (
+        task_data.title
+        if task_data.title is not None
+        else current_title
+    )
+
+    new_done = (
+        task_data.done
+        if task_data.done is not None
+        else current_done
+    )
+
+    cursor.execute(
+        """
+        UPDATE tasks
+        SET title = ?, done = ?
+        WHERE id = ?
+        """,
+        (new_title, new_done, id)
+    )
+
+    connection.commit()
+    connection.close()
+
+    return Task(
+        id=id,
+        title=new_title,
+        done=new_done
+    )
+
+@app.delete("/tasks/{id}", status_code=204, summary="Delete a task")
+def delete_task(id: int):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        "DELETE FROM tasks WHERE id = ?",
+        (id,)
+    )
+
+    if cursor.rowcount == 0:
+        connection.close()
+        return JSONResponse(
+            status_code=404,
+            content={"error": f"Task {id} not found"}
+        )
+
+    connection.commit()
+    connection.close()
+
+    return None
