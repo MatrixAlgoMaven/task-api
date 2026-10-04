@@ -133,3 +133,24 @@ def get_task(id: int):
         title=row[1],
         done=bool(row[2])
     )
+
+@app.post("/tasks", status_code=201, summary="Create a new task")
+def create_task(task_data: TaskCreate):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        "INSERT INTO tasks (title, done) VALUES (?, ?)",
+        (task_data.title, False)
+    )
+
+    new_id = cursor.lastrowid
+
+    connection.commit()
+    connection.close()
+
+    return Task(
+        id=new_id,
+        title=task_data.title,
+        done=False
+    )
