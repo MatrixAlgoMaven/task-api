@@ -3,8 +3,14 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, field_validator
 import sqlite3
+import os
+from dotenv import load_dotenv
 
 app = FastAPI()
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/tasks.db")
+DATABASE_PATH = DATABASE_URL.replace("sqlite:///", "")
 
 
 # -----------------------------
@@ -12,7 +18,7 @@ app = FastAPI()
 # -----------------------------
 
 def get_connection():
-    return sqlite3.connect("tasks.db")
+    return sqlite3.connect(DATABASE_PATH)
 
 
 def initialize_database():
